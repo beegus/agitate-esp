@@ -4,6 +4,12 @@
 
 namespace config {
 
+// Release builds set this from the vX.Y.Z tag; local builds report "dev".
+#ifndef AGITATE_ESP_VERSION
+#define AGITATE_ESP_VERSION "dev"
+#endif
+constexpr char kFirmwareVersion[] = AGITATE_ESP_VERSION;
+
 // --- ULN2003 driver inputs (ESP32-C3 SuperMini GPIO numbers) ---
 // Avoid GPIO 2/8/9 (strapping) and 18/19 (USB D-/D+).
 constexpr uint8_t kStepperIn1 = 4;

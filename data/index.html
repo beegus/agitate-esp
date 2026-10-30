@@ -172,6 +172,7 @@
     </div>
 
     <div class="tiny">Home Wi-Fi and access point password: <a href="/wifi">Wi-Fi setup</a> (open while joined to the device's access point).</div>
+    <div class="tiny">Firmware <span id="firmwareVersion">-</span></div>
   </div>
 
   <script>
@@ -425,6 +426,7 @@
     function renderStatus(s) {
       latestStatus = s;
       lastStatusMs = Date.now();
+      if (s.firmwareVersion) document.getElementById('firmwareVersion').textContent = s.firmwareVersion;
       if (s.running) {
         if (s.waitingForNext) {
           stepName.textContent = `${s.stepName} (Ready - change chemical, then press Next)`;

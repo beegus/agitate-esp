@@ -22,26 +22,34 @@ component notices for the build being distributed.
 
 ## Firmware binary distribution
 
-This repository currently provides project source and build instructions, not
-prebuilt firmware releases. A notice list alone is not a substitute for
-compliance with the applicable LGPL terms. Before distributing prebuilt
-firmware, review the LGPL versions above for the chosen distribution method.
-Those terms can require providing the license texts and corresponding library
-source, and allowing recipients to modify or replace the LGPL libraries and
-relink the combined firmware. Any applicable installation information and
-other notices must also accompany the distribution.
+Prebuilt firmware images are published on the repository's Releases page. They
+are built by the `Release` GitHub Actions workflow from the tagged source, with
+the dependency versions pinned in `platformio.ini`. ESPAsyncWebServer, AsyncTCP,
+and the Arduino-ESP32 framework are LGPL and statically linked, so each release
+also includes:
 
-Use the source and license files from the exact dependency versions used for
-the build. See each upstream link above and the Espressif package/component
-manifests. Do not treat this summary as legal advice or as confirmation that a
-particular binary distribution method satisfies every license condition.
+- `agitate-esp-X.Y.Z-source.tar.gz`: the complete project source and build
+  scripts, plus the exact ESPAsyncWebServer, AsyncTCP, ArduinoJson, and
+  Arduino-ESP32 (`cores`, `libraries`, `variants`) source used for the build,
+  each with its license file. With it you can modify any of these libraries and
+  rebuild and relink the firmware using the steps in `README.md`.
+- `LGPL-2.1.txt`, `LGPL-3.0.txt`, and `GPL-3.0.txt`, also kept in `licenses/`.
+- This file and `LICENSE`.
+
+The precompiled ESP-IDF libraries in the Arduino-ESP32 framework package are
+built from ESP-IDF v5.5.5 (`b774170ff46`) and components whose versions are
+listed in that package's `versions.txt`. ESP-IDF is Apache-2.0, and its
+components carry their own permissive licenses; see the
+[ESP-IDF source](https://github.com/espressif/esp-idf/tree/v5.5.5) and each
+component's license files.
+
+This is a good-faith summary, not legal advice.
 
 ## Nintendo 3DS companion application
 
-Prebuilt `.cia` and `.3dsx` files are published on the repository's Releases
-page. They are built by the `3DS app` GitHub Actions workflow in the
-`devkitpro/devkitarm:20260610` image, and each release includes this file and
-`LICENSE`.
+Prebuilt `.cia` and `.3dsx` files are published in the same releases. They are
+built by the `Release` GitHub Actions workflow in the
+`devkitpro/devkitarm:20260610` image.
 
 | Component | License | Notes |
 |---|---|---|

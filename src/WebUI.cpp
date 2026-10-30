@@ -448,6 +448,7 @@ void WebUI::handleStart(AsyncWebServerRequest *request, JsonVariant &json) {
 
 String WebUI::statusJson(uint32_t nowMs) const {
   JsonDocument doc;
+  doc["firmwareVersion"] = config::kFirmwareVersion;
   doc["running"] = workflow_.isRunning();
   doc["paused"] = workflow_.isPaused();
   doc["waitingForNext"] = workflow_.isWaitingForNext();

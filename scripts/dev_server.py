@@ -97,6 +97,7 @@ class State:
     def status(self) -> dict:
         self.mark_step_done()
         return {
+            "firmwareVersion": "dev",
             "running": self.running,
             "paused": self.paused,
             "waitingForNext": self.waiting_for_next,

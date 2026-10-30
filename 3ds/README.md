@@ -59,18 +59,19 @@ the status to view it again.
 
 ## Install
 
-Prebuilt files are attached to each `3ds-v*` release on the repository's
-Releases page. Both need a 3DS that can already run homebrew:
+Prebuilt files are attached to each release on the repository's Releases page,
+alongside the matching ESP32 firmware. Both need a 3DS that can already run
+homebrew:
 
 - `AgitateESP3DS.cia`: install with a CIA installer such as FBI; it then
   appears on the HOME Menu.
 - `AgitateESP3DS.3dsx`: copy to `/3ds/` on the SD card and launch it from the
   Homebrew Launcher.
 
-To publish a new release, push a tag such as `3ds-v1.1.0`. The `3DS app`
-GitHub Actions workflow builds both files, sets the CIA version from the tag,
-and creates the release. Every push that changes `3ds/` also runs a build, with
-the files available as a workflow artifact.
+To publish a new release, push a tag such as `v1.1.0`. The `Release` GitHub
+Actions workflow builds the firmware and both 3DS files, sets the CIA version
+from the tag, and creates the release. Every push that changes `3ds/` also runs
+a build, with the files available as a workflow artifact.
 
 ## Build
 

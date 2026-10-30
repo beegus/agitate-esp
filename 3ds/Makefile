@@ -16,7 +16,7 @@ APP_TITLE := agitate-esp
 APP_DESCRIPTION := 3DS controller for agitate-esp
 APP_AUTHOR := beegus
 APP_PRODUCT_CODE := AGITATE3DS
-# CIA version shown by installers; CI sets it from the 3ds-vX.Y.Z release tag.
+# CIA version shown by installers; CI sets it from the vX.Y.Z release tag.
 VERSION ?= 1.0.0
 VERSION_PARTS := $(subst ., ,$(VERSION))
 

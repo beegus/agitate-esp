@@ -80,8 +80,21 @@ onto the driver's pins.
 
 ## Flash the firmware
 
-Install [PlatformIO](https://docs.platformio.org/en/latest/core/installation/index.html), then from the
-repository root:
+**From a release (no toolchain needed):** download `agitate-esp-X.Y.Z-full.bin` from the
+[Releases page](https://github.com/beegus/agitate-esp/releases) and flash it at address `0x0`. Either use the browser-based
+[ESP Tool](https://espressif.github.io/esptool-js/) in Chrome or Edge, or run:
+
+```bash
+pip install esptool
+esptool --chip esp32c3 write-flash 0x0 agitate-esp-X.Y.Z-full.bin
+```
+
+The full image erases the saved home Wi-Fi and access point password. To update a board and keep them, flash
+`agitate-esp-X.Y.Z-firmware.bin` at `0x10000` and `agitate-esp-X.Y.Z-littlefs.bin` at `0x290000` instead.
+Release images contain no [profiles](#profiles); the LittleFS image replaces any you uploaded.
+
+**From source:** install [PlatformIO](https://docs.platformio.org/en/latest/core/installation/index.html), then
+from the repository root:
 
 ```bash
 pio run -t upload      # flash firmware
@@ -90,7 +103,8 @@ pio device monitor     # serial console at 115200
 ```
 
 Run `uploadfs` again whenever you change anything in `data/`; without it the board can't serve its pages. If
-upload fails or the port disappears, hold **BOOT**, tap **RESET**, release **BOOT**, and retry.
+flashing fails or the port disappears, hold **BOOT**, tap **RESET**, release **BOOT**, and retry. The web page
+footer shows the firmware version.
 
 ## First power-up
 
@@ -142,9 +156,10 @@ drop at that moment.
 
 ## Nintendo 3DS app
 
-The `3ds/` folder contains a native 3DS client. Download the `.cia` or `.3dsx` from the repository's Releases
-page (a homebrew-enabled 3DS is required), connect the 3DS to the same home network as the ESP32, and the app
-finds the controller automatically. See [3ds/README.md](3ds/README.md) for installing, building, and controls.
+The `3ds/` folder contains a native 3DS client. Download the `.cia` or `.3dsx` from the
+[Releases page](https://github.com/beegus/agitate-esp/releases) (a homebrew-enabled 3DS is required), connect
+the 3DS to the same home network as the ESP32, and the app finds the controller automatically. See
+[3ds/README.md](3ds/README.md) for installing, building, and controls.
 
 ## Profiles
 
@@ -181,7 +196,8 @@ make -C 3ds test                  # 3DS client parsing tests
 ```
 
 The firmware is pinned to pioarduino `55.03.312-1` (Arduino-ESP32 3.3.12). CI runs all of the above plus a
-firmware build on every push. Pushing a `3ds-vX.Y.Z` tag publishes a 3DS release.
+firmware build on every push. Pushing a `vX.Y.Z` tag builds and publishes a release
+with the firmware and the 3DS app.
 
 <details>
 <summary>HTTP API</summary>

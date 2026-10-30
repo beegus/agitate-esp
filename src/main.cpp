@@ -62,6 +62,7 @@ void processDiscoveryPackets() {
 
 void setup() {
   Serial.begin(115200);
+  Serial.printf("agitate-esp firmware %s\n", config::kFirmwareVersion);
 
   agitator.begin();
   agitator.setSpeedRpm(config::kAgitationRpm);
