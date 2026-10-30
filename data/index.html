@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>agitate-esp</title>
+  <link rel="icon" href="data:," />
+  <style>
+    :root { color-scheme: light; }
+
+    /* Old AOL 5.0-era look: earthy tans/browns/greens, chunky beveled 3D borders, no rounded corners */
+    body {
+      margin: 0;
+      font-family: Verdana, Arial, "Times New Roman", sans-serif;
+      background: #c9be9c;
+      background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 2px, transparent 2px, transparent 8px);
+      color: #2b2410;
+      font-size: 13px;
+    }
+
+    .wrap {
+      max-width: 720px;
+      margin: 12px auto;
+      padding: 6px;
+      background: #d8cdb0;
+      border: 2px outset #8b7355;
+      box-shadow: 3px 3px 6px rgba(0,0,0,0.35);
+    }
+
+    h1 {
+      margin: 0 0 10px 0;
+      padding: 6px 10px;
+      font-size: 18px;
+      font-family: "Times New Roman", serif;
+      letter-spacing: 0.5px;
+      color: #f2e9d0;
+      background: linear-gradient(180deg, #7a5230 0%, #5a3a20 50%, #4a2f1a 100%);
+      border: 2px outset #9c7a4e;
+      text-shadow: 1px 1px 1px #2a1a0a;
+    }
+
+    .card {
+      background: #ded3b4;
+      border: 2px outset #a08858;
+      padding: 0;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      margin: 0 0 8px 0;
+      padding: 4px 8px;
+      font-size: 13px;
+      font-weight: bold;
+      color: #f2ead4;
+      background: linear-gradient(180deg, #3c5c3c 0%, #2b4326 60%, #223420 100%);
+      border-bottom: 2px solid #1a2a18;
+      text-shadow: 1px 1px 1px #0f1a0d;
+    }
+
+    .card > *:not(h2) {
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+
+    .card > *:last-child { padding-bottom: 10px; }
+
+    label { font-size: 12px; display: block; margin-bottom: 3px; color: #3c2f14; font-weight: bold; }
+
+    select, input, button, textarea {
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 0;
+      border: 2px inset #8b7355;
+      padding: 5px 6px;
+      margin-bottom: 8px;
+      background: #f2ead4;
+      color: #2b2410;
+      font-family: Verdana, Arial, sans-serif;
+      font-size: 12px;
+    }
+
+    textarea { min-height: 130px; font-family: "Courier New", monospace; }
+
+    /* 16px stops iOS Safari from zooming the page when the field takes focus. */
+    #customTime { font-size: 16px; }
+
+    button {
+      font-weight: bold;
+      cursor: pointer;
+      border: 2px outset #8b5a2b;
+      background: linear-gradient(180deg, #a97a4a 0%, #7a5230 100%);
+      color: #f2ead4;
+      text-shadow: 1px 1px 1px #3a2410;
+      padding: 7px 4px;
+    }
+
+    button:active {
+      border-style: inset;
+      background: linear-gradient(180deg, #7a5230 0%, #a97a4a 100%);
+    }
+
+    .btnrow { display: grid; gap: 6px; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); }
+
+    #actionResult:empty { display: none; }
+
+    .state { font-weight: bold; }
+    .active { color: #6b1f1f; font-weight: bold; }
+    .ok { color: #2f4f2f; font-weight: bold; }
+    .error { color: #8b2f2f; font-weight: bold; }
+
+    .card > ol { padding-left: 2.2rem; margin: 0 0 8px 0; }
+    li { margin: 0.3rem 0; }
+
+    .current {
+      color: #f2ead4;
+      background: #6b1f1f;
+      font-weight: bold;
+      padding: 1px 4px;
+      border: 1px solid #4a1414;
+    }
+
+    .tiny { opacity: 0.85; font-size: 11px; color: #4a3d1c; }
+
+    #lookup { padding-bottom: 8px; color: #3c2f14; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>agitate-esp</h1>
+
+    <div class="card">
+      <h2>Process Setup</h2>
+      <label for="film">Film (B&W)</label>
+      <select id="film"></select>
+
+      <label for="developer">Developer</label>
+      <select id="developer"></select>
+
+      <label for="dilution">Dilution</label>
+      <select id="dilution"></select>
+
+      <label for="fixer">Fixer</label>
+      <select id="fixer">
+        <option>Ilford Rapid Fixer (1+4)</option>
+        <option>Kodak Rapid Fixer (1+3)</option>
+        <option>Adox Adofix Plus (1+4)</option>
+        <option>Custom fixer (edit in source)</option>
+      </select>
+
+      <label for="customTime">Custom Developer Time Override (minutes)</label>
+      <input id="customTime" type="number" min="0" step="0.5" placeholder="Leave blank to use lookup" />
+
+      <div id="lookup">Note(s): —</div>
+    </div>
+
+    <div class="card">
+      <h2>Workflow</h2>
+      <div>Active step: <span id="stepName" aria-live="polite">Idle</span></div>
+      <div>Countdown: <span id="timer" role="timer">0:00</span> <span id="connState" class="tiny"></span></div>
+      <div class="state">Motor: <span id="motorState" aria-live="polite">Resting</span></div>
+      <ol id="steps"></ol>
+      <div class="btnrow">
+        <button id="startBtn">Start</button>
+        <button id="pauseBtn">Pause</button>
+        <button id="restartStepBtn">Restart Step</button>
+        <button id="nextBtn">Next/Skip</button>
+        <button id="stopBtn">Stop</button>
+      </div>
+      <button id="testBtn">Test Motor (one sweep)</button>
+      <button id="aggressiveBtn">Aggressive Agitation</button>
+      <div id="actionResult" class="tiny" role="alert"></div>
+    </div>
+
+    <div class="tiny">Home Wi-Fi and access point password: <a href="/wifi">Wi-Fi setup</a> (open while joined to the device's access point).</div>
+  </div>
+
+  <script>
+    const filmSel = document.getElementById('film');
+    const developerSel = document.getElementById('developer');
+    const dilutionSel = document.getElementById('dilution');
+    const fixer = document.getElementById('fixer');
+    const customTime = document.getElementById('customTime');
+    const lookup = document.getElementById('lookup');
+    const stepName = document.getElementById('stepName');
+    const timer = document.getElementById('timer');
+    const motorState = document.getElementById('motorState');
+    const stepsEl = document.getElementById('steps');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const restartStepBtn = document.getElementById('restartStepBtn');
+    const startBtn = document.getElementById('startBtn');
+    const aggressiveBtn = document.getElementById('aggressiveBtn');
+    const actionResult = document.getElementById('actionResult');
+    const connState = document.getElementById('connState');
+
+    const fmt = (sec) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+
+    async function fetchJson(url, opts) {
+      const r = await fetch(url, opts);
+      const raw = await r.text();
+      let payload;
+      try {
+        payload = raw ? JSON.parse(raw) : {};
+      } catch (_) {
+        throw new Error(`Server did not return JSON (HTTP ${r.status} from ${url})`);
+      }
+
+      if (!r.ok) {
+        throw new Error(payload.error || `HTTP ${r.status}`);
+      }
+      return payload;
+    }
+
+    // Flattened list of every profile entry parsed from data/profiles/*.json plus any session-only additions.
+    let allProfiles = [];
+
+    function mergeProfilesPayload(payload) {
+      // Support both a direct array of profiles or an object with a "profiles" key
+      const list = Array.isArray(payload) ? payload : (Array.isArray(payload && payload.profiles) ? payload.profiles : []);
+      let added = 0;
+      for (const p of list) {
+        if (!p || !p.filmId || !p.developerId || !p.dilution || !(Number(p.timeMinutes) > 0)) {
+          continue;
+        }
+        allProfiles.push({
+          filmId: String(p.filmId),
+          filmName: String(p.filmName || p.filmId),
+          developerId: String(p.developerId),
+          developerName: String(p.developerName || p.developerId),
+          dilution: String(p.dilution),
+          asaIso: p.asaIso != null ? String(p.asaIso) : '',
+          timeMinutes: Number(p.timeMinutes),
+          filmSize: String(p.filmSize || 'Unknown'),
+          notes: String(p.notes || ''),
+        });
+        added++;
+      }
+      return added;
+    }
+
+    async function loadProfileLibrary() {
+      let list;
+      try {
+        list = await fetchJson('/api/profiles');
+      } catch (err) {
+        lookup.textContent = `Could not list profiles: ${err.message}`;
+        return;
+      }
+
+      for (const filename of list.profiles || []) {
+        try {
+          const payload = await fetchJson(`/profiles/${encodeURIComponent(filename)}`);
+          mergeProfilesPayload(payload);
+        } catch (err) {
+          console.warn(`Skipping profile file ${filename}: ${err.message}`);
+        }
+      }
+
+      rebuildFilmOptions();
+      rebuildDeveloperOptions();
+    }
+
+    function rebuildFilmOptions() {
+      const currentFilm = filmSel.value;
+      const currentDev = developerSel.value;
+      const films = new Map();
+
+      for (const p of allProfiles) {
+        if (currentDev && p.developerId !== currentDev) continue;
+        if (!films.has(p.filmId)) {
+          films.set(p.filmId, p.filmName);
+        }
+      }
+
+      filmSel.innerHTML = '';
+      const anyOpt = document.createElement('option');
+      anyOpt.value = '';
+      anyOpt.textContent = '-- Select Film --';
+      filmSel.appendChild(anyOpt);
+
+      for (const [id, name] of [...films.entries()].sort((a, b) => a[1].localeCompare(b[1]))) {
+        const option = document.createElement('option');
+        option.value = id;
+        option.textContent = name;
+        filmSel.appendChild(option);
+      }
+
+      if (currentFilm && [...filmSel.options].some(o => o.value === currentFilm)) {
+        filmSel.value = currentFilm;
+      } else if (filmSel.options.length > 1) {
+        // Default to first real film if previous choice no longer valid
+        filmSel.selectedIndex = 1;
+      }
+    }
+
+    function rebuildDeveloperOptions() {
+      const currentFilm = filmSel.value;
+      const currentDev = developerSel.value;
+      const developers = new Map();
+
+      for (const p of allProfiles) {
+        if (currentFilm && p.filmId !== currentFilm) continue;
+        if (!developers.has(p.developerId)) {
+          developers.set(p.developerId, p.developerName);
+        }
+      }
+
+      developerSel.innerHTML = '';
+      const anyOpt = document.createElement('option');
+      anyOpt.value = '';
+      anyOpt.textContent = '-- Select Developer --';
+      developerSel.appendChild(anyOpt);
+
+      for (const [id, name] of [...developers.entries()].sort((a, b) => a[1].localeCompare(b[1]))) {
+        const option = document.createElement('option');
+        option.value = id;
+        option.textContent = name;
+        developerSel.appendChild(option);
+      }
+
+      if (currentDev && [...developerSel.options].some(o => o.value === currentDev)) {
+        developerSel.value = currentDev;
+      } else if (developerSel.options.length > 1) {
+        // Default to first real developer if previous choice no longer valid
+        developerSel.selectedIndex = 1;
+      }
+
+      rebuildDilutionOptions();
+    }
+
+    function rebuildDilutionOptions() {
+      dilutionSel.innerHTML = '';
+      const currentFilm = filmSel.value;
+      const currentDev = developerSel.value;
+
+      // Only show dilutions if both film AND developer are explicitly selected
+      if (!currentFilm || !currentDev) {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = '-- Select Film and Developer --';
+        dilutionSel.appendChild(opt);
+        updateLookup();
+        return;
+      }
+
+      allProfiles.forEach((p, idx) => {
+        if (p.filmId !== currentFilm || p.developerId !== currentDev) {
+          return;
+        }
+        const option = document.createElement('option');
+        option.value = String(idx);
+        const isoLabel = p.asaIso ? ` @ ISO ${p.asaIso}` : '';
+        option.textContent = `${p.dilution}${isoLabel} — ${p.timeMinutes} min`;
+        dilutionSel.appendChild(option);
+      });
+
+      updateLookup();
+    }
+
+    function selectedProfile() {
+      // The placeholder option carries an empty value and Number('') is 0,
+      // which would otherwise resolve to the first profile in the library.
+      if (dilutionSel.value === '') {
+        return null;
+      }
+      const idx = Number(dilutionSel.value);
+      return Number.isInteger(idx) && allProfiles[idx] ? allProfiles[idx] : null;
+    }
+
+    function updateLookup() {
+      const p = selectedProfile();
+      if (!p) {
+        lookup.textContent = allProfiles.length === 0
+          ? 'No profiles installed. Add JSON files under data/profiles/ and re-upload, or set a custom developer time.'
+          : 'Note(s): —';
+      } else {
+        const notesStr = p.notes ? p.notes : '—';
+        lookup.textContent = `Note(s): ${notesStr}`;
+      }
+      renderSteps();
+    }
+
+    // The firmware reports its step list (names and durations) in every status
+    // response, even while idle; only the developer duration is previewed locally.
+    const DEVELOPER_STEP_INDEX = 1;
+    // Sent when neither a profile nor a custom time is chosen.
+    const DEFAULT_DEVELOPER_MINUTES = 10;
+
+    let latestStatus = null;
+    let lastStatusMs = 0;
+
+    function previewDeveloperSec() {
+      const customMinutes = Number(customTime.value || 0);
+      if (customMinutes > 0) {
+        return Math.round(customMinutes * 60);
+      }
+      const p = selectedProfile();
+      return Math.round((p ? p.timeMinutes : DEFAULT_DEVELOPER_MINUTES) * 60);
+    }
+
+    function renderStepList(steps, currentIndex) {
+      stepsEl.replaceChildren(...steps.map((st, idx) => {
+        const item = document.createElement('li');
+        item.textContent = `${st.name} (${fmt(st.durationSec)})`;
+        if (idx === currentIndex) item.className = 'current';
+        return item;
+      }));
+    }
+
+    function renderSteps() {
+      // While idle, preview the steps using the currently selected profile/custom
+      // time so the list updates immediately instead of waiting for /api/start.
+      const steps = latestStatus && Array.isArray(latestStatus.steps) ? latestStatus.steps : [];
+      if (!latestStatus || !latestStatus.running) {
+        const preview = steps.map((s) => ({ ...s }));
+        if (preview[DEVELOPER_STEP_INDEX]) {
+          preview[DEVELOPER_STEP_INDEX].durationSec = previewDeveloperSec();
+        }
+        renderStepList(preview, -1);
+        return;
+      }
+
+      renderStepList(steps, latestStatus.stepIndex);
+    }
+
+    function renderStatus(s) {
+      latestStatus = s;
+      lastStatusMs = Date.now();
+      if (s.running) {
+        if (s.waitingForNext) {
+          stepName.textContent = `${s.stepName} (Ready - change chemical, then press Next)`;
+        } else if (s.waitingForStart) {
+          stepName.textContent = `${s.stepName} (Ready - press Start)`;
+        } else {
+          stepName.textContent = s.paused ? `${s.stepName} (Paused)` : s.stepName;
+        }
+      } else {
+        stepName.textContent = 'Idle';
+      }
+      timer.textContent = fmt(s.stepRemainingSec || 0);
+      motorState.textContent = s.motorActive ? 'Agitating' : 'Resting';
+      motorState.className = s.motorActive ? 'active' : '';
+      startBtn.textContent = s.waitingForStart ? 'Start Step' : (s.paused ? 'Resume' : 'Start');
+      startBtn.disabled = s.running && !s.paused && !s.waitingForStart;
+      pauseBtn.textContent = s.paused ? 'Resume' : 'Pause';
+      renderSteps();
+    }
+
+    async function refreshStatus() {
+      const s = await fetchJson('/api/status');
+      renderStatus(s);
+    }
+
+    async function post(url, body) {
+      actionResult.className = 'tiny';
+      actionResult.textContent = '';
+      try {
+        const opts = { method: 'POST' };
+        if (body !== undefined) {
+          opts.headers = { 'Content-Type': 'application/json' };
+          opts.body = JSON.stringify(body);
+        }
+        renderStatus(await fetchJson(url, opts));
+      } catch (err) {
+        actionResult.className = 'tiny error';
+        actionResult.textContent = err.message;
+      }
+    }
+
+    pauseBtn.onclick = () => post('/api/pause');
+    restartStepBtn.onclick = () => post('/api/restart_step');
+    document.getElementById('nextBtn').onclick = () => post('/api/next');
+    document.getElementById('stopBtn').onclick = () => post('/api/stop');
+    document.getElementById('testBtn').onclick = () => post('/api/motor/test');
+    aggressiveBtn.onclick = () => post('/api/motor/aggressive');
+
+    document.getElementById('startBtn').onclick = () => {
+      const p = selectedProfile();
+      const customMinutes = Number(customTime.value || 0);
+      const timeMinutes = customMinutes > 0 ? customMinutes : (p ? p.timeMinutes : DEFAULT_DEVELOPER_MINUTES);
+      return post('/api/start', {
+        film: filmSel.value,
+        developer: developerSel.value,
+        fixer: fixer.value,
+        dilution: p ? p.dilution : 'Custom',
+        customTimeMinutes: timeMinutes
+      });
+    };
+
+    filmSel.onchange = () => {
+      rebuildDeveloperOptions();
+    };
+
+    developerSel.onchange = () => {
+      rebuildDilutionOptions();
+    };
+
+    dilutionSel.onchange = updateLookup;
+    customTime.oninput = renderSteps;
+
+    let ws;
+    let pollTimer;
+    let wsRetryMs = 1500;
+
+    function startPolling() {
+      if (!pollTimer) {
+        pollTimer = setInterval(() => refreshStatus().catch(() => {}), 1000);
+      }
+    }
+
+    function stopPolling() {
+      clearInterval(pollTimer);
+      pollTimer = undefined;
+    }
+
+    function startWs() {
+      try {
+        const wsProto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+        ws = new WebSocket(`${wsProto}//${location.host}/ws`);
+        ws.onopen = () => {
+          wsRetryMs = 1500;
+          stopPolling();
+        };
+        ws.onmessage = (ev) => renderStatus(JSON.parse(ev.data));
+        ws.onclose = () => {
+          startPolling();
+          setTimeout(startWs, wsRetryMs);
+          wsRetryMs = Math.min(wsRetryMs * 2, 30000);
+        };
+      } catch (err) {
+        startPolling();
+        console.warn(`Realtime status disabled: ${err.message}`);
+      }
+    }
+
+    renderSteps();
+
+    // The countdown only advances when the device pushes status, so surface a
+    // stale link instead of leaving a frozen timer that still looks live.
+    const STALE_STATUS_MS = 4000;
+    setInterval(() => {
+      const stale = lastStatusMs > 0 && Date.now() - lastStatusMs > STALE_STATUS_MS;
+      connState.textContent = stale ? '(disconnected — values may be stale)' : '';
+      connState.className = stale ? 'tiny error' : 'tiny';
+    }, 1000);
+
+    loadProfileLibrary().then(() => {
+      refreshStatus();
+      startPolling();
+      startWs();
+    }).catch((err) => {
+      console.warn(`Connection error: ${err.message}`);
+    });
+  </script>
+</body>
+</html>

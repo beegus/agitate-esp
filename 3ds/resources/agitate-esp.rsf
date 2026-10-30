@@ -1,0 +1,85 @@
+BasicInfo:
+  Title                   : "agitate-esp"
+  CompanyCode             : "00"
+  ProductCode             : "AGITATE3DS"
+  Logo                    : Nintendo
+
+TitleInfo:
+  Category                : Application
+  UniqueId                : 0xA61A7
+
+Option:
+  UseOnSD                 : true
+  FreeProductCode         : true
+  MediaFootPadding        : false
+  EnableCrypt             : false
+  EnableCompress          : true
+
+AccessControlInfo:
+  CoreVersion             : 2
+  DescVersion             : 2
+  ReleaseKernelMajor      : "02"
+  ReleaseKernelMinor      : "33"
+  UseExtSaveData          : false
+
+  MemoryType              : Application
+  SystemMode              : 64MB
+  IdealProcessor          : 0
+  AffinityMask            : 1
+  Priority                : 16
+  MaxCpu                  : 0x9E
+  HandleTableSize         : 0x200
+  CanUseNonAlphabetAndNumber : true
+  PermitMainFunctionArgument : true
+  SpecialMemoryArrange    : true
+
+  SystemCallAccess:
+    ControlMemory         : 1
+    ExitProcess            : 3
+    GetThreadPriority      : 11
+    SetThreadPriority      : 12
+    CreateThread           : 8
+    ExitThread             : 9
+    SleepThread            : 10
+    CreateMutex            : 19
+    ReleaseMutex           : 20
+    CreateEvent            : 23
+    SignalEvent            : 24
+    ClearEvent             : 25
+    CreateTimer            : 26
+    SetTimer               : 27
+    CancelTimer            : 28
+    ClearTimer             : 29
+    CreateMemoryBlock      : 30
+    MapMemoryBlock         : 31
+    UnmapMemoryBlock       : 32
+    CloseHandle            : 35
+    WaitSynchronization1   : 36
+    WaitSynchronizationN   : 37
+    GetSystemTick          : 40
+    GetSystemInfo           : 42
+    ConnectToPort          : 45
+    SendSyncRequest        : 50
+    GetResourceLimit       : 56
+    GetResourceLimitLimitValues : 57
+    GetResourceLimitCurrentValues : 58
+    OutputDebugString      : 61
+
+  ServiceAccessControl:
+    - APT:U
+    - ac:u
+    - gsp::Gpu
+    - hid:USER
+    - http:C
+    - soc:U
+
+SystemControlInfo:
+  SaveDataSize             : 0KB
+  RemasterVersion          : 0
+  StackSize                : 0x40000
+  Dependency:
+    ac                     : 0x0004013000002402
+    gsp                    : 0x0004013000001C02
+    hid                    : 0x0004013000001D02
+    http                   : 0x0004013000002902
+    soc                    : 0x0004013000002C02

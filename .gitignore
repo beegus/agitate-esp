@@ -1,0 +1,24 @@
+.pio/
+.vscode/
+.DS_Store
+*.log
+__pycache__/
+*.pyc
+
+# Nintendo 3DS build products and generated CIA artwork/audio.
+3ds/build/
+3ds/*.elf
+3ds/*.map
+3ds/*.smdh
+3ds/*.icn
+3ds/*.bnr
+3ds/*.cia
+3ds/*.3ds
+3ds/*.3dsx
+3ds/resources/icon.png
+3ds/resources/banner.png
+3ds/resources/silence.wav
+
+# Profile data may contain third-party chart compilations; keep it local.
+data/profiles/*
+!data/profiles/.gitkeep

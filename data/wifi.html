@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>agitate-esp Wi-Fi setup</title>
+  <style>
+    body { font: 16px Verdana, Arial, sans-serif; max-width: 36rem; margin: 2rem auto; padding: 0 1rem; color: #2b2410; background: #c9be9c; }
+    main { padding: 1rem; background: #ded3b4; border: 2px outset #a08858; }
+    label { display: block; margin-top: 1rem; font-weight: bold; }
+    input, button { box-sizing: border-box; width: 100%; padding: 0.7rem; margin-top: 0.35rem; font: inherit; }
+    button { cursor: pointer; }
+    #status { min-height: 3rem; }
+    h2 { margin-top: 2rem; font-size: 1.1rem; }
+    .note { font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Home Wi-Fi setup</h1>
+    <p>Enter your 2.4 GHz home Wi-Fi credentials. They are stored on this ESP32 only. The agitate-esp access point remains available if the router is unavailable.</p>
+    <p id="status" role="status">Checking connection...</p>
+    <form id="wifi-form">
+      <label for="ssid">Wi-Fi name (SSID)</label>
+      <input id="ssid" name="ssid" maxlength="32" autocomplete="off" required>
+      <label for="password">Wi-Fi password (leave blank for an open network)</label>
+      <input id="password" name="password" type="password" maxlength="63" autocomplete="new-password">
+      <button type="submit">Save and connect</button>
+    </form>
+    <button id="forget" type="button">Forget home Wi-Fi</button>
+    <p class="note">While connected to home Wi-Fi, the access point moves to the router's channel, so phones on the
+      access point may briefly disconnect when the connection is made.</p>
+
+    <h2>Access point password</h2>
+    <p class="note">Replaces the shared default password for <span id="ap-ssid">this device's access point</span>.
+      The access point restarts and every connected phone must rejoin with the new password. A full flash erase
+      restores the default.</p>
+    <form id="ap-form">
+      <label for="ap-password">New access point password (8-63 characters)</label>
+      <input id="ap-password" name="ap-password" type="password" minlength="8" maxlength="63" autocomplete="new-password" required>
+      <button type="submit">Change access point password</button>
+    </form>
+    <p><a href="/">Return to the controller</a></p>
+  </main>
+  <script>
+    const statusText = document.getElementById('status');
+    const form = document.getElementById('wifi-form');
+
+    async function postJson(url, body) {
+      const options = { method: 'POST' };
+      if (body !== undefined) {
+        options.headers = { 'Content-Type': 'application/json' };
+        options.body = JSON.stringify(body);
+      }
+      const response = await fetch(url, options);
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || `HTTP ${response.status}`);
+      return result;
+    }
+
+    async function refreshStatus() {
+      try {
+        const response = await fetch('/api/network', { cache: 'no-store' });
+        const network = await response.json();
+        if (!response.ok) throw new Error(network.error || 'Network status unavailable');
+        if (network.apSsid) document.getElementById('ap-ssid').textContent = network.apSsid;
+        statusText.textContent = network.connected
+          ? `Connected to ${network.ssid}. Open http://${network.hostname} on this Wi-Fi, or use ${network.ip} if the name does not resolve.`
+          : network.configured
+            ? 'Home Wi-Fi saved but not connected; retrying in the background. Direct access through the agitate-esp AP is still available.'
+            : 'No home Wi-Fi saved. Direct access through the agitate-esp AP is still available.';
+      } catch (error) {
+        statusText.textContent = error.message;
+      }
+    }
+
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      statusText.textContent = 'Saving credentials and connecting...';
+      try {
+        const result = await postJson('/api/wifi', {
+          ssid: document.getElementById('ssid').value,
+          password: document.getElementById('password').value
+        });
+        document.getElementById('password').value = '';
+        statusText.textContent = result.message;
+        setTimeout(refreshStatus, 2000);
+      } catch (error) {
+        statusText.textContent = error.message;
+      }
+    });
+
+    document.getElementById('forget').addEventListener('click', async () => {
+      if (!confirm('Forget the saved home Wi-Fi network?')) return;
+      try {
+        statusText.textContent = (await postJson('/api/wifi-forget')).message;
+      } catch (error) {
+        statusText.textContent = error.message;
+      }
+    });
+
+    document.getElementById('ap-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      const input = document.getElementById('ap-password');
+      try {
+        statusText.textContent = (await postJson('/api/ap-password', { password: input.value })).message;
+        input.value = '';
+      } catch (error) {
+        statusText.textContent = error.message;
+      }
+    });
+
+    refreshStatus();
+    setInterval(refreshStatus, 3000);
+  </script>
+</body>
+</html>
